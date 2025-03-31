@@ -26,6 +26,14 @@ algorithm_info = {
         3. Compute Euler’s totient function: φ(n) = (p - 1)(q - 1).
         4. Select an encryption exponent e such that 1 < e < φ(n) and gcd(e, φ(n)) = 1.
         5. Compute the private key d such that d ≡ e^(-1) (mod φ(n)).
+        6. Public key: (e, n); Private key: (d, n).
+        7. Encryption: Ciphertext C = M^e mod n.
+        8. Decryption: Plaintext M = C^d mod n.
+        
+        **Applications**:
+        - Secure web communication (TLS/SSL)
+        - Digital signatures for authentication
+        - Email encryption (PGP)
         
         **Pros**:
         - High security for large key sizes
@@ -34,6 +42,7 @@ algorithm_info = {
         **Cons**:
         - Slow for large data encryption
         - Large key sizes needed for strong security
+        - Susceptible to quantum computing attacks in the future
     """,
     "ECC": """
         **Elliptic Curve Cryptography (ECC)**
@@ -41,52 +50,85 @@ algorithm_info = {
         **History**: Introduced in 1985 by Neal Koblitz and Victor Miller as an alternative to RSA.
         
         **Mathematical Foundation**:
-        - Based on the equation: y² ≡ x³ + ax + b (mod p)
-        - Key generation uses elliptic curve point multiplication.
-        - Encryption typically uses ECDH for shared secret generation.
+        - Based on the equation: y² ≡ x³ + ax + b (mod p).
+        - Utilizes properties of elliptic curves over finite fields.
+        - Key generation uses elliptic curve point multiplication: Q = d × P.
+        - Encryption often uses Elliptic Curve Diffie-Hellman (ECDH) for secure key exchange.
+        
+        **Applications**:
+        - Mobile and IoT device security
+        - Bitcoin and blockchain transaction signatures
+        - Secure messaging protocols like Signal and WhatsApp
         
         **Pros**:
-        - Strong security with smaller key sizes compared to RSA
+        - Strong security with smaller key sizes compared to RSA (256-bit ECC is roughly equivalent to 3072-bit RSA)
         - Efficient for mobile and low-power devices
+        - More resistant to quantum attacks than RSA
         
         **Cons**:
         - More complex implementation
         - Limited support in legacy systems
+        - Requires careful parameter selection to avoid vulnerabilities (e.g., weak curves)
     """,
     "AES": """
         **Advanced Encryption Standard (AES)**
         
-        **History**: Developed by Belgian cryptographers Vincent Rijmen and Joan Daemen in 2001.
+        **History**: Developed by Belgian cryptographers Vincent Rijmen and Joan Daemen in 2001 as a successor to DES.
         
         **Mathematical Foundation**:
-        - Operates on fixed-size blocks of data (128-bits).
-        - Uses substitution-permutation networks and rounds of encryption.
+        - Operates on fixed-size blocks of data (128 bits).
+        - Uses a substitution-permutation network (SPN) with multiple rounds (10, 12, or 14 rounds depending on key size).
+        - Key sizes: 128-bit, 192-bit, and 256-bit.
+        - Each round consists of substitution, permutation, and key addition steps.
+        
+        **Modes of Operation**:
+        - ECB (Electronic Codebook) - Not recommended due to patterns in ciphertext.
+        - CBC (Cipher Block Chaining) - More secure but requires an initialization vector (IV).
+        - GCM (Galois/Counter Mode) - Provides both encryption and authentication.
+        
+        **Applications**:
+        - Secure file encryption
+        - TLS/SSL encryption
+        - Encrypted disk storage (BitLocker, FileVault)
         
         **Pros**:
         - Fast and efficient for data encryption
         - Widely adopted for secure communication
+        - Strong security with proper implementation
         
         **Cons**:
         - Requires secure key management
-        - Limited by block size (128 bits)
+        - Limited by block size (128 bits, requiring padding for smaller inputs)
+        - Vulnerable to side-channel attacks if improperly implemented
     """,
     "Blowfish": """
         **Blowfish Cipher**
         
-        **History**: Designed in 1993 by Bruce Schneier as a fast and secure block cipher.
+        **History**: Designed in 1993 by Bruce Schneier as a fast and secure alternative to DES.
         
         **Mathematical Foundation**:
         - Operates on a 16-round Feistel network.
-        - Key expansion generates 18 subkeys and four S-boxes.
+        - Uses a block size of 64 bits (less secure against modern attacks).
+        - Key expansion generates 18 subkeys and four S-boxes using the original key.
+        - Each encryption round involves permutation and key-dependent substitutions.
+        
+        **Applications**:
+        - Password hashing (bcrypt)
+        - Older VPN implementations
+        - Legacy software encryption
         
         **Pros**:
         - Fast encryption with a flexible key length (32–448 bits)
         - Good performance on low-power devices
+        - Free and unpatented
         
         **Cons**:
-        - Outdated for modern security needs
+        - Outdated for modern security needs (small 64-bit block size makes it vulnerable to birthday attacks)
         - Considered less secure than AES for long-term use
+        - Not recommended for new applications due to better alternatives
     """
+
+
 }
 
 for algo, description in algorithm_info.items():
