@@ -1,5 +1,4 @@
 streamlit
 cryptography
 rsa
-pyinstaller
 pyperclip
