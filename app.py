@@ -6,7 +6,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding as sym_padding
 import os
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import pyperclip
 
 # Streamlit Title
 st.title("Encryption/Decryption App")
@@ -110,24 +109,21 @@ if "blowfish_key" not in st.session_state:
 
 # Function to get raw RSA and ECC public keys without headers
 def get_rsa_public_key():
-    # Get the PEM encoding of the public key (without the header/footer)
     pem = st.session_state.rsa_public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    # Remove the PEM header and footer
     pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)  # Join the remaining parts to get the raw key
+    return ''.join(pem)
 
 def get_ecc_public_key():
-    # Get the PEM encoding of the public key (without the header/footer)
     pem = st.session_state.ecc_public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    # Remove the PEM header and footer
     pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)  # Join the remaining parts to get the raw key
+    return ''.join(pem)
+
 
 # Define Encryption Classes
 class RSAEncryption:
@@ -231,6 +227,8 @@ class BlowfishEncryption:
         decrypted = unpadder.update(decrypted_padded) + unpadder.finalize()
         return decrypted.decode()
 
+
+
 # Function to regenerate keys
 def generate_new_keys():
     st.session_state.rsa_private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -247,7 +245,13 @@ if st.sidebar.button("Generate New Keys"):
 # Display Key Information
 algorithm = st.selectbox("Choose Encryption Algorithm", ["RSA", "ECC", "AES", "Blowfish"])
 action = st.radio("Choose Action", ["Encrypt", "Decrypt"])
-plaintext = st.text_area("Enter Text to Encrypt/Decrypt")
+
+# Handle the input text
+if 'plaintext' not in st.session_state:
+    st.session_state.plaintext = ""
+
+# Text area for input
+plaintext = st.text_area("Enter Text to Encrypt/Decrypt", value=st.session_state.plaintext)
 
 # Show Key Option
 show_key_option = st.selectbox("Show Key", ["No", "Yes"])
@@ -263,12 +267,7 @@ if show_key_option == "Yes":
     st.write(label)
     
     # Display the key
-    st.text_area("Key", key, height=150)
-    
-    # Add the copy button
-    if st.button(f"Copy {label} to Clipboard"):
-        pyperclip.copy(key)  # Copy the key to clipboard
-        st.success(f"{label} copied to clipboard!")
+    st.text_area("Key (Click to Copy)", key, height=150)
 
 # Encrypt/Decrypt Button
 if st.button("Process"):
@@ -280,12 +279,15 @@ if st.button("Process"):
     # Store the result in session state to preserve it after re-run
     st.session_state.result = result
 
+    # Reset the plaintext field in session state to clear the input text
+    st.session_state.plaintext = ""  # Clear the input text after processing
+
 # Display the result from session state
 if "result" in st.session_state:
     st.subheader("Result")
     st.text_area("", st.session_state.result, height=150)  # Use text_area to display result
 
     # Add a button to copy result to clipboard
-    if st.button("Copy Result to Clipboard"):
-        pyperclip.copy(st.session_state.result)  # Copy the result to clipboard
-        st.success("Result copied to clipboard!")
+    st.markdown(f"""
+        <button onclick="navigator.clipboard.writeText('{st.session_state.result}')">Copy Result to Clipboard</button>
+    """, unsafe_allow_html=True)
