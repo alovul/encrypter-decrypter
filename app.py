@@ -10,7 +10,7 @@ import pyperclip
 
 
 # Streamlit Page Config
-st.set_page_config(page_title="🔐 Crypto Toolkit", layout="centered")
+st.set_page_config(page_title="🔐 Crypto Toolkit", layout="wide")
 if "sidebar_expanded" not in st.session_state:
     st.session_state.sidebar_expanded = False
 
