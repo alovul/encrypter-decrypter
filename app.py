@@ -8,12 +8,77 @@ import os
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import pyperclip
 
-# Streamlit Title
-st.title("Encryption/Decryption App")
 
-# Sidebar with Algorithm Information
-st.sidebar.title("Algorithm Information")
+# Streamlit Page Config
+st.set_page_config(page_title="🔐 Crypto Toolkit", layout="centered")
+if "sidebar_expanded" not in st.session_state:
+    st.session_state.sidebar_expanded = False
 
+with st.sidebar:
+    if st.button("🧩 Toggle Sidebar Width"):
+        st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
+
+st.markdown("""
+    <style>
+        .main { background-color: #f9f9f9; }
+        .stTextArea textarea { font-family: monospace; }
+    </style>
+""", unsafe_allow_html=True)
+
+# Title
+st.title("🔐 Encryptor/Decryptor")
+st.markdown("""
+    <style>
+    .main { background-color: #f9f9f9; }
+    .stTextArea textarea { font-family: monospace; }
+    section[role="region"] > div[aria-expanded="true"] {
+        border: 2px solid #6366F1;
+        background-color: #EEF2FF;
+        padding: 10px;
+        border-radius: 10px;
+    }
+    /* Only expand sidebar to full width when a checkbox is triggered */
+    .sidebar-expanded [data-testid="stSidebar"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .sidebar-expanded [data-testid="stSidebarContent"] {
+        padding: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+
+if st.session_state.sidebar_expanded:
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            [data-testid="stSidebarContent"] {
+                padding: 2rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {
+                width: 18rem !important;
+                max-width: 18rem !important;
+            }
+            [data-testid="stSidebarContent"] {
+                padding: 1rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+
+
+# Sidebar Algorithm Info
+st.sidebar.title("🧠 Algorithm Details")
 algorithm_info = {
     "RSA": """
         **RSA (Rivest-Shamir-Adleman) Encryption**
@@ -132,49 +197,43 @@ algorithm_info = {
 }
 
 for algo, description in algorithm_info.items():
-    with st.sidebar.expander(algo):
+    with st.sidebar.expander(f"ℹ️ {algo}"):
         st.markdown(description)
 
-# Persist keys across sessions
+# Key Initialization
 if "rsa_private_key" not in st.session_state:
     st.session_state.rsa_private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     st.session_state.rsa_public_key = st.session_state.rsa_private_key.public_key()
-
 if "ecc_private_key" not in st.session_state:
     st.session_state.ecc_private_key = ec.generate_private_key(ec.SECP256R1())
     st.session_state.ecc_public_key = st.session_state.ecc_private_key.public_key()
-
 if "aes_key" not in st.session_state:
     st.session_state.aes_key = os.urandom(32)
-
 if "blowfish_key" not in st.session_state:
     st.session_state.blowfish_key = os.urandom(16)
 
-# Function to get raw RSA and ECC public keys without headers
+# Key Display
+
 def get_rsa_public_key():
-    # Get the PEM encoding of the public key (without the header/footer)
     pem = st.session_state.rsa_public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    # Remove the PEM header and footer
     pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)  # Join the remaining parts to get the raw key
+    return ''.join(pem)
 
 def get_ecc_public_key():
-    # Get the PEM encoding of the public key (without the header/footer)
     pem = st.session_state.ecc_public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    # Remove the PEM header and footer
     pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)  # Join the remaining parts to get the raw key
+    return ''.join(pem)
 
-# Define Encryption Classes
+# Encryption Classes
 class RSAEncryption:
     @staticmethod
-    def encrypt(plaintext: str) -> str:
+    def encrypt(plaintext):
         encrypted = st.session_state.rsa_public_key.encrypt(
             plaintext.encode(),
             padding.OAEP(
@@ -186,7 +245,7 @@ class RSAEncryption:
         return encrypted.hex()
 
     @staticmethod
-    def decrypt(encrypted_text: str) -> str:
+    def decrypt(encrypted_text):
         decrypted = st.session_state.rsa_private_key.decrypt(
             bytes.fromhex(encrypted_text),
             padding.OAEP(
@@ -199,7 +258,7 @@ class RSAEncryption:
 
 class ECCEncryption:
     @staticmethod
-    def encrypt(plaintext: str) -> str:
+    def encrypt(plaintext):
         shared_key = st.session_state.ecc_private_key.exchange(ec.ECDH(), st.session_state.ecc_public_key)
         derived_key = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -215,7 +274,7 @@ class ECCEncryption:
         return iv.hex() + encrypted.hex() + encryptor.tag.hex()
 
     @staticmethod
-    def decrypt(encrypted_text: str) -> str:
+    def decrypt(encrypted_text):
         iv = bytes.fromhex(encrypted_text[:24])
         tag = bytes.fromhex(encrypted_text[-32:])
         encrypted_data = bytes.fromhex(encrypted_text[24:-32])
@@ -234,7 +293,7 @@ class ECCEncryption:
 
 class AESEncryption:
     @staticmethod
-    def encrypt(plaintext: str) -> str:
+    def encrypt(plaintext):
         iv = os.urandom(16)
         cipher = Cipher(algorithms.AES(st.session_state.aes_key), modes.GCM(iv), backend=default_backend())
         encryptor = cipher.encryptor()
@@ -242,7 +301,7 @@ class AESEncryption:
         return iv.hex() + encrypted.hex() + encryptor.tag.hex()
 
     @staticmethod
-    def decrypt(encrypted_text: str) -> str:
+    def decrypt(encrypted_text):
         iv = bytes.fromhex(encrypted_text[:32])
         tag = bytes.fromhex(encrypted_text[-32:])
         encrypted_bytes = bytes.fromhex(encrypted_text[32:-32])
@@ -253,7 +312,7 @@ class AESEncryption:
 
 class BlowfishEncryption:
     @staticmethod
-    def encrypt(plaintext: str) -> str:
+    def encrypt(plaintext):
         iv = os.urandom(8)
         cipher = Cipher(algorithms.Blowfish(st.session_state.blowfish_key), modes.CBC(iv), backend=default_backend())
         encryptor = cipher.encryptor()
@@ -263,7 +322,7 @@ class BlowfishEncryption:
         return iv.hex() + encrypted.hex()
 
     @staticmethod
-    def decrypt(encrypted_text: str) -> str:
+    def decrypt(encrypted_text):
         iv = bytes.fromhex(encrypted_text[:16])
         encrypted_bytes = bytes.fromhex(encrypted_text[16:])
         cipher = Cipher(algorithms.Blowfish(st.session_state.blowfish_key), modes.CBC(iv), backend=default_backend())
@@ -273,7 +332,8 @@ class BlowfishEncryption:
         decrypted = unpadder.update(decrypted_padded) + unpadder.finalize()
         return decrypted.decode()
 
-# Function to regenerate keys
+# Key Generation
+
 def generate_new_keys():
     st.session_state.rsa_private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     st.session_state.rsa_public_key = st.session_state.rsa_private_key.public_key()
@@ -282,52 +342,63 @@ def generate_new_keys():
     st.session_state.aes_key = os.urandom(32)
     st.session_state.blowfish_key = os.urandom(16)
 
-# Sidebar Key Management
-if st.sidebar.button("Generate New Keys"):
+if st.sidebar.button("🔁 Generate New Keys"):
     generate_new_keys()
+    st.sidebar.success("Keys regenerated successfully!")
 
-# Display Key Information
-algorithm = st.selectbox("Choose Encryption Algorithm", ["RSA", "ECC", "AES", "Blowfish"])
-action = st.radio("Choose Action", ["Encrypt", "Decrypt"])
-plaintext = st.text_area("Enter Text to Encrypt/Decrypt")
+# UI Layout
+col1, col2 = st.columns([1, 1])
+with col1:
+    algorithm = st.selectbox("🔽 Choose Algorithm", ["RSA", "ECC", "AES", "Blowfish"])
+with col2:
+    action = st.radio("⚙️ Action", ["Encrypt", "Decrypt"], horizontal=True)
 
-# Show Key Option
-show_key_option = st.selectbox("Show Key", ["No", "Yes"])
+st.divider()
 
-if show_key_option == "Yes":
+if "clear_input" not in st.session_state:
+    st.session_state.clear_input = False
+st.subheader("📝 Input Text")
+default_text = "" if st.session_state.clear_input else st.session_state.get("input_text", "")
+st.text_area("Enter your text here:", key="input_text", value=default_text, height=150, placeholder="Type your message...")
+st.session_state.clear_input = False  # Reset flag
+
+st.divider()
+
+if st.button("🚀 Process Now"):
+    try:
+        input_val = st.session_state.input_text
+        if action == "Encrypt":
+            result = globals()[algorithm + "Encryption"].encrypt(input_val)
+        else:
+            result = globals()[algorithm + "Encryption"].decrypt(input_val) if all(c in "0123456789abcdefABCDEF" for c in input_val) else "Invalid hexadecimal input."
+        st.session_state.result = result
+        st.session_state.clear_input = True  # Will clear input on next rerun
+    except Exception as e:
+        st.error(f"❌ Error during processing: {e}")
+
+
+st.divider()
+
+st.subheader("🔐 Key Options")
+show_key = st.selectbox("Do you want to view the key?", ["No", "Yes"])
+if show_key == "Yes":
     key_map = {
         "RSA": ("RSA Public Key", get_rsa_public_key()),
         "ECC": ("ECC Public Key", get_ecc_public_key()),
         "AES": ("AES Key", st.session_state.aes_key.hex()),
         "Blowfish": ("Blowfish Key", st.session_state.blowfish_key.hex())
     }
-    label, key = key_map[algorithm]
-    st.write(label)
-    
-    # Display the key
-    st.text_area("Key", key, height=150)
-    
-    # Add the copy button
-    if st.button(f"Copy {label} to Clipboard"):
-        pyperclip.copy(key)  # Copy the key to clipboard
+    label, key_val = key_map[algorithm]
+    st.text_area(label, key_val, height=150)
+    if st.button(f"📋 Copy {label}"):
+        pyperclip.copy(key_val)
         st.success(f"{label} copied to clipboard!")
 
-# Encrypt/Decrypt Button
-if st.button("Process"):
-    if action == "Encrypt":
-        result = globals()[algorithm + "Encryption"].encrypt(plaintext)
-    else:
-        result = globals()[algorithm + "Encryption"].decrypt(plaintext) if all(c in "0123456789abcdefABCDEF" for c in plaintext) else "Invalid hexadecimal input."
-    
-    # Store the result in session state to preserve it after re-run
-    st.session_state.result = result
+st.divider()
 
-# Display the result from session state
 if "result" in st.session_state:
-    st.subheader("Result")
-    st.text_area("", st.session_state.result, height=150)  # Use text_area to display result
-
-    # Add a button to copy result to clipboard
-    if st.button("Copy Result to Clipboard"):
-        pyperclip.copy(st.session_state.result)  # Copy the result to clipboard
+    st.subheader("📤 Output")
+    st.text_area("Processed Output", st.session_state.result, height=150)
+    if st.button("📋 Copy Result"):
+        pyperclip.copy(st.session_state.result)
         st.success("Result copied to clipboard!")
