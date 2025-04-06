@@ -81,120 +81,185 @@ else:
 st.sidebar.title("🧠 Algorithm Details")
 algorithm_info = {
     "RSA": """
-        **RSA (Rivest-Shamir-Adleman) Encryption**
-        
-        **History**: Developed in 1977 by Ron Rivest, Adi Shamir, and Leonard Adleman.
-        
-        **Mathematical Foundation**:
-        1. Choose two large prime numbers: p and q.
-        2. Compute n = p × q (modulus).
-        3. Compute Euler’s totient function: φ(n) = (p - 1)(q - 1).
-        4. Select an encryption exponent e such that 1 < e < φ(n) and gcd(e, φ(n)) = 1.
-        5. Compute the private key d such that d ≡ e^(-1) (mod φ(n)).
-        6. Public key: (e, n); Private key: (d, n).
-        7. Encryption: Ciphertext C = M^e mod n.
-        8. Decryption: Plaintext M = C^d mod n.
-        
-        **Applications**:
-        - Secure web communication (TLS/SSL)
-        - Digital signatures for authentication
-        - Email encryption (PGP)
-        
-        **Pros**:
-        - High security for large key sizes
-        - Widely used and trusted
-        
-        **Cons**:
-        - Slow for large data encryption
-        - Large key sizes needed for strong security
-        - Susceptible to quantum computing attacks in the future
+        **🔐 RSA (Rivest-Shamir-Adleman) Encryption**
+
+        **📜 History**
+        - Developed in 1977 by Ron Rivest, Adi Shamir, and Leonard Adleman.
+        - First widely adopted public-key encryption algorithm.
+
+        **🧠 Mathematical Foundation**
+        - Based on the computational difficulty of factoring large integers.
+        - Steps:
+            1. Choose large primes p and q.
+            2. Compute n = p × q.
+            3. Calculate φ(n) = (p−1)(q−1).
+            4. Choose e such that 1 < e < φ(n) and gcd(e, φ(n)) = 1.
+            5. Compute private exponent d where d ≡ e⁻¹ mod φ(n).
+        - Public Key: (e, n)
+        - Private Key: (d, n)
+        - Encryption: C = M^e mod n
+        - Decryption: M = C^d mod n
+
+        **📦 Key Sizes**
+        - Common: 2048-bit, 3072-bit, 4096-bit.
+        - Larger keys provide better security but impact performance.
+
+        **🔐 Applications**
+        - Digital signatures
+        - SSL/TLS certificates
+        - Secure key exchange
+
+        **✅ Pros**
+        - Mature and widely trusted
+        - Supports digital signatures and encryption
+        - Asymmetric (no pre-shared secret required)
+
+        **⚠️ Cons**
+        - Very slow for encrypting large data
+        - Large keys are required for strong security
+        - Insecure if implemented without padding (use OAEP/PSS)
+        - Vulnerable to quantum computing (Shor's algorithm)
+
+        **🧪 Security Notes**
+        - Never use textbook RSA (raw mod exponentiation)
+        - Use padding schemes: OAEP (encryption), PSS (signing)
     """,
+
     "ECC": """
-        **Elliptic Curve Cryptography (ECC)**
-        
-        **History**: Introduced in 1985 by Neal Koblitz and Victor Miller as an alternative to RSA.
-        
-        **Mathematical Foundation**:
-        - Based on the equation: y² ≡ x³ + ax + b (mod p).
-        - Utilizes properties of elliptic curves over finite fields.
-        - Key generation uses elliptic curve point multiplication: Q = d × P.
-        - Encryption often uses Elliptic Curve Diffie-Hellman (ECDH) for secure key exchange.
-        
-        **Applications**:
-        - Mobile and IoT device security
-        - Bitcoin and blockchain transaction signatures
-        - Secure messaging protocols like Signal and WhatsApp
-        
-        **Pros**:
-        - Strong security with smaller key sizes compared to RSA (256-bit ECC is roughly equivalent to 3072-bit RSA)
-        - Efficient for mobile and low-power devices
-        - More resistant to quantum attacks than RSA
-        
-        **Cons**:
-        - More complex implementation
-        - Limited support in legacy systems
-        - Requires careful parameter selection to avoid vulnerabilities (e.g., weak curves)
+        **📐 Elliptic Curve Cryptography (ECC)**
+
+        **📜 History**
+        - Introduced in 1985 by Neal Koblitz and Victor S. Miller.
+        - Became popular as an alternative to RSA with smaller keys.
+
+        **🧠 Mathematical Foundation**
+        - Based on algebraic structure of elliptic curves over finite fields.
+        - Equation: y² = x³ + ax + b (mod p)
+        - Secure due to the difficulty of the Elliptic Curve Discrete Logarithm Problem (ECDLP).
+        - Uses point multiplication: Q = d × P, where:
+            - d = private key
+            - P = base point (curve generator)
+            - Q = public key
+
+        **🔑 Key Exchange**
+        - Typically uses Elliptic Curve Diffie-Hellman (ECDH)
+        - Also used in ECDSA for digital signatures
+
+        **📦 Key Sizes**
+        - 256-bit ECC ≈ 3072-bit RSA in strength
+        - Common curves: secp256r1 (NIST P-256), secp384r1, Curve25519
+
+        **🔐 Applications**
+        - TLS handshakes
+        - Blockchain/cryptocurrency wallets
+        - Secure messaging (e.g., Signal, WhatsApp)
+
+        **✅ Pros**
+        - Smaller keys = faster computation
+        - Lower power/resource usage (great for mobile/IoT)
+        - Shorter signatures and ciphertexts
+
+        **⚠️ Cons**
+        - Implementation complexity
+        - Need for careful curve selection (some NIST curves have been criticized)
+        - Less understood than RSA by general public
+
+        **🧪 Security Notes**
+        - Use well-reviewed curves (Curve25519, NIST P-256)
+        - Avoid custom or proprietary curves unless peer-reviewed
     """,
+
     "AES": """
-        **Advanced Encryption Standard (AES)**
-        
-        **History**: Developed by Belgian cryptographers Vincent Rijmen and Joan Daemen in 2001 as a successor to DES.
-        
-        **Mathematical Foundation**:
-        - Operates on fixed-size blocks of data (128 bits).
-        - Uses a substitution-permutation network (SPN) with multiple rounds (10, 12, or 14 rounds depending on key size).
-        - Key sizes: 128-bit, 192-bit, and 256-bit.
-        - Each round consists of substitution, permutation, and key addition steps.
-        
-        **Modes of Operation**:
-        - ECB (Electronic Codebook) - Not recommended due to patterns in ciphertext.
-        - CBC (Cipher Block Chaining) - More secure but requires an initialization vector (IV).
-        - GCM (Galois/Counter Mode) - Provides both encryption and authentication.
-        
-        **Applications**:
-        - Secure file encryption
-        - TLS/SSL encryption
-        - Encrypted disk storage (BitLocker, FileVault)
-        
-        **Pros**:
-        - Fast and efficient for data encryption
-        - Widely adopted for secure communication
-        - Strong security with proper implementation
-        
-        **Cons**:
-        - Requires secure key management
-        - Limited by block size (128 bits, requiring padding for smaller inputs)
-        - Vulnerable to side-channel attacks if improperly implemented
+        **🧊 Advanced Encryption Standard (AES)**
+
+        **📜 History**
+        - Standardized by NIST in 2001, replacing DES.
+        - Originally known as Rijndael (designed by Daemen & Rijmen).
+
+        **🧠 Mathematical Foundation**
+        - Symmetric key block cipher
+        - Works on 128-bit blocks
+        - Key sizes: 128, 192, or 256 bits
+        - Structure: Substitution-Permutation Network (SPN)
+        - Number of rounds: 10 (AES-128), 12 (AES-192), 14 (AES-256)
+        - Involves byte substitution, row shifting, column mixing, and round key addition
+
+        **🔁 Modes of Operation**
+        - ECB: Fast but insecure (reveals patterns)
+        - CBC: Requires IV, popular but no built-in integrity
+        - GCM: Authenticated encryption (confidentiality + integrity)
+        - CTR: Stream mode, fast, but needs nonce management
+
+        **📦 Key Management**
+        - Critical to secure storage and handling of keys
+        - Often used in hybrid systems (AES key exchanged via RSA or ECC)
+
+        **🔐 Applications**
+        - File/disk encryption (BitLocker, FileVault)
+        - Encrypted databases
+        - HTTPS traffic (via TLS)
+
+        **✅ Pros**
+        - Fast and efficient for large data
+        - Hardware acceleration available (AES-NI)
+        - Strong resistance to known attacks when properly used
+
+        **⚠️ Cons**
+        - No forward secrecy in itself
+        - Sensitive to key leakage and side-channel attacks
+        - Padding oracle attacks if CBC is misused
+
+        **🧪 Security Notes**
+        - Use AES-GCM for authenticated encryption
+        - Use secure random IVs (never reuse them in CTR/GCM)
+        - 128-bit key is still considered secure in 2025, but 256-bit is recommended for top-tier security
     """,
+
     "Blowfish": """
-        **Blowfish Cipher**
-        
-        **History**: Designed in 1993 by Bruce Schneier as a fast and secure alternative to DES.
-        
-        **Mathematical Foundation**:
-        - Operates on a 16-round Feistel network.
-        - Uses a block size of 64 bits (less secure against modern attacks).
-        - Key expansion generates 18 subkeys and four S-boxes using the original key.
-        - Each encryption round involves permutation and key-dependent substitutions.
-        
-        **Applications**:
-        - Password hashing (bcrypt)
-        - Older VPN implementations
-        - Legacy software encryption
-        
-        **Pros**:
-        - Fast encryption with a flexible key length (32–448 bits)
-        - Good performance on low-power devices
-        - Free and unpatented
-        
-        **Cons**:
-        - Outdated for modern security needs (small 64-bit block size makes it vulnerable to birthday attacks)
-        - Considered less secure than AES for long-term use
-        - Not recommended for new applications due to better alternatives
+        **🐡 Blowfish Cipher**
+
+        **📜 History**
+        - Designed in 1993 by Bruce Schneier.
+        - Meant as a fast, free alternative to DES.
+
+        **🧠 Mathematical Foundation**
+        - 64-bit block cipher using Feistel structure
+        - Key size: 32–448 bits
+        - 16 rounds of encryption per block
+        - Key schedule creates 18 32-bit subkeys and four 32-bit S-boxes
+        - Operates by mixing key material into P-array and S-boxes using repeated encryption
+
+        **🔁 Modes of Operation**
+        - Often used in CBC, ECB, or CFB modes
+        - No built-in authentication or integrity checking
+
+        **📦 Key Schedule**
+        - Known to be slow due to expensive setup
+        - Key-dependent S-box generation makes Blowfish hard to parallelize
+
+        **🔐 Applications**
+        - bcrypt password hashing algorithm
+        - Legacy file encryption tools
+        - Embedded systems with limited memory
+
+        **✅ Pros**
+        - Free to use, no patents
+        - Strong for its time and configurable key size
+        - Compact implementation (especially useful in embedded contexts)
+
+        **⚠️ Cons**
+        - 64-bit block size is now considered insecure for modern applications
+        - Vulnerable to birthday attacks at scale
+        - No support for authenticated encryption
+        - Slower than AES in many real-world scenarios
+
+        **🧪 Security Notes**
+        - Superseded by Twofish (also by Schneier) and AES
+        - Still used in `bcrypt`, but not recommended for encryption today
+        - Consider AES, ChaCha20, or Twofish for new implementations
     """
-
-
 }
+
 
 for algo, description in algorithm_info.items():
     with st.sidebar.expander(f"ℹ️ {algo}"):
@@ -379,26 +444,56 @@ if st.button("🚀 Process Now"):
 
 st.divider()
 
-st.subheader("🔐 Key Options")
-show_key = st.selectbox("Do you want to view the key?", ["No", "Yes"])
-if show_key == "Yes":
-    key_map = {
-        "RSA": ("RSA Public Key", get_rsa_public_key()),
-        "ECC": ("ECC Public Key", get_ecc_public_key()),
-        "AES": ("AES Key", st.session_state.aes_key.hex()),
-        "Blowfish": ("Blowfish Key", st.session_state.blowfish_key.hex())
-    }
-    label, key_val = key_map[algorithm]
-    st.text_area(label, key_val, height=150)
-    if st.button(f"📋 Copy {label}"):
-        pyperclip.copy(key_val)
-        st.success(f"{label} copied to clipboard!")
-
-st.divider()
-
 if "result" in st.session_state:
     st.subheader("📤 Output")
     st.text_area("Processed Output", st.session_state.result, height=150)
     if st.button("📋 Copy Result"):
         pyperclip.copy(st.session_state.result)
         st.success("Result copied to clipboard!")
+
+st.divider()
+
+st.subheader("🔐 Key Options")
+
+# Track key viewer state
+if "selected_key_algo" not in st.session_state:
+    st.session_state.selected_key_algo = algorithm  # match selected algorithm by default
+
+# Keep the selected key viewer synced to the encryption algorithm
+if st.session_state.selected_key_algo != algorithm:
+    st.session_state.selected_key_algo = algorithm  # update when encryption method changes
+
+# Key viewer toggle
+view_key = st.checkbox("Show Key Viewer")
+
+if view_key:
+    # Available algorithms
+    algo_list = ["RSA", "ECC", "AES", "Blowfish"]
+    
+    # Show the key dropdown with the active algorithm pre-selected
+    key_choice = st.selectbox(
+        "🔑 Select Key to View",
+        algo_list,
+        index=algo_list.index(st.session_state.selected_key_algo),
+        key="key_choice"
+    )
+
+    # Key lookup table
+    key_map = {
+        "RSA": ("RSA Public Key", get_rsa_public_key()),
+        "ECC": ("ECC Public Key", get_ecc_public_key()),
+        "AES": ("AES Key", st.session_state.aes_key.hex()),
+        "Blowfish": ("Blowfish Key", st.session_state.blowfish_key.hex())
+    }
+
+    label, key_val = key_map[key_choice]
+    st.text_area(label, key_val, height=150)
+
+    if st.button(f"📋 Copy {label}"):
+        pyperclip.copy(key_val)
+        st.success(f"{label} copied to clipboard!")
+
+
+
+
+
