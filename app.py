@@ -280,20 +280,21 @@ if "blowfish_key" not in st.session_state:
 # Key Display
 
 def get_rsa_public_key():
-    pem = st.session_state.rsa_public_key.public_bytes(
+    pem = st.session_state.rsa_private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
     )
-    pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)
+    return pem.decode("utf-8").strip()
 
 def get_ecc_public_key():
-    pem = st.session_state.ecc_public_key.public_bytes(
+    pem = st.session_state.ecc_private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
     )
-    pem = pem.decode("utf-8").strip().splitlines()[1:-1]
-    return ''.join(pem)
+    return pem.decode("utf-8").strip()
+
 
 # Encryption Classes
 class RSAEncryption:
@@ -493,7 +494,5 @@ if view_key:
         pyperclip.copy(key_val)
         st.success(f"{label} copied to clipboard!")
 
-
-
-
+st.divider()
 
