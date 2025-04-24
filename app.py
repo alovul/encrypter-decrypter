@@ -15,7 +15,7 @@ if "sidebar_expanded" not in st.session_state:
     st.session_state.sidebar_expanded = False
 
 with st.sidebar:
-    if st.button("🧩 Toggle Sidebar Width"):
+    if st.button("🧩 Toggle Sidebar"):
         st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
 
 st.markdown("""
@@ -493,6 +493,50 @@ if view_key:
     if st.button(f"📋 Copy {label}"):
         pyperclip.copy(key_val)
         st.success(f"{label} copied to clipboard!")
+
+st.divider()
+
+#Import Key Text
+st.subheader("📝 Paste Key Text to Import")
+
+with st.expander("Paste your key here"):
+    key_text = st.text_area("Key Input", placeholder="Paste your key (PEM for RSA/ECC, hex for AES/Blowfish)...")
+
+    if st.button("📥 Import Key from Text"):
+        try:
+            algo = algorithm.upper()
+            content = key_text.strip()
+
+            if algo == "RSA":
+                private_key = serialization.load_pem_private_key(content.encode(), password=None, backend=default_backend())
+                st.session_state.rsa_private_key = private_key
+                st.session_state.rsa_public_key = private_key.public_key()
+                st.success("✅ RSA key imported successfully.")
+
+            elif algo == "ECC":
+                private_key = serialization.load_pem_private_key(content.encode(), password=None, backend=default_backend())
+                st.session_state.ecc_private_key = private_key
+                st.session_state.ecc_public_key = private_key.public_key()
+                st.success("✅ ECC key imported successfully.")
+
+            elif algo == "AES":
+                if all(c in '0123456789abcdefABCDEF' for c in content) and len(content) in [32, 64]:
+                    st.session_state.aes_key = bytes.fromhex(content)
+                    st.success("✅ AES key imported successfully.")
+                else:
+                    st.error("AES key must be a valid 64-character hex string for 256-bit keys.")
+
+            elif algo == "Blowfish":
+                if all(c in '0123456789abcdefABCDEF' for c in content) and 8 <= len(content) <= 112:
+                    st.session_state.blowfish_key = bytes.fromhex(content)
+                    st.success("✅ Blowfish key imported successfully.")
+                else:
+                    st.error("Blowfish key must be hex and 8–112 characters (4–56 bytes).")
+
+        except Exception as e:
+            st.error(f"❌ Failed to import key: {e}")
+
+
 
 st.divider()
 
